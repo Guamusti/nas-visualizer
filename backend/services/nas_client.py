@@ -5,7 +5,8 @@ from typing import AsyncIterator
 from webdav3.client import Client as WebDAVClient
 from config import settings
 
-PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp", ".tiff", ".tif", ".raw", ".cr2", ".nef", ".arw"}
+PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp", ".tiff", ".tif",
+                    ".raw", ".cr2", ".cr3", ".nef", ".arw", ".dng", ".rw2", ".orf", ".raf", ".pef", ".srw"}
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".m4v", ".3gp"}
 MEDIA_EXTENSIONS = PHOTO_EXTENSIONS | VIDEO_EXTENSIONS
 
@@ -55,16 +56,17 @@ async def list_media_files(path: str | None = None) -> list[dict]:
     return await loop.run_in_executor(None, _list_recursive, client, root)
 
 
+def download_sync(remote_path: str) -> bytes:
+    """Blocking download — for use inside worker threads (executor)."""
+    client = _make_client()
+    buf = io.BytesIO()
+    client.download_from(buf, remote_path)
+    return buf.getvalue()
+
+
 async def download_file(remote_path: str) -> bytes:
     loop = asyncio.get_event_loop()
-    client = _make_client()
-
-    def _download() -> bytes:
-        buf = io.BytesIO()
-        client.download_from(buf, remote_path)
-        return buf.getvalue()
-
-    return await loop.run_in_executor(None, _download)
+    return await loop.run_in_executor(None, download_sync, remote_path)
 
 
 async def list_folders(path: str | None = None) -> list[dict]:

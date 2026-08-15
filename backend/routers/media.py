@@ -26,7 +26,7 @@ async def thumbnail(photo_id: int, db: AsyncSession = Depends(get_db)):
     # Generate on demand if missing
     try:
         data = await nas_client.download_file(p.path)
-        thumb = exif_extractor.make_thumbnail(data)
+        thumb = exif_extractor.make_thumbnail(data, p.filename)
         if thumb:
             thumb_path.write_bytes(thumb)
             p.thumbnail_cached = True
@@ -46,8 +46,10 @@ async def full_image(photo_id: int, db: AsyncSession = Depends(get_db)):
         data = await nas_client.download_file(p.path)
         # Serve a web-friendly version for HEIC/RAW so browsers can render it
         suffix = p.filename.lower().rsplit(".", 1)[-1] if "." in p.filename else ""
-        if suffix in ("heic", "heif", "tiff", "tif", "cr2", "nef", "arw", "raw"):
-            web = exif_extractor.make_thumbnail(data, size=(2048, 2048))
+        raw_or_special = {"heic", "heif", "tiff", "tif", "raw", "cr2", "cr3",
+                          "nef", "arw", "dng", "rw2", "orf", "raf", "pef", "srw"}
+        if suffix in raw_or_special:
+            web = exif_extractor.make_thumbnail(data, p.filename, size=(2048, 2048))
             if web:
                 return Response(content=web, media_type="image/jpeg")
         media_type = "image/jpeg" if suffix in ("jpg", "jpeg") else f"image/{suffix or 'jpeg'}"

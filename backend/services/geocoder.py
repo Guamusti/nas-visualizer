@@ -8,6 +8,15 @@ _geolocator = Nominatim(user_agent="nas-visualizer/1.0", timeout=5)
 _last_request = 0.0
 _RATE_LIMIT = 1.1  # Nominatim requires >= 1 req/sec
 
+# Cache by rounded coordinates (~110m at 3 decimals) so photos taken in the
+# same place don't each hit Nominatim. Massive speedup for location detection.
+_cache: dict[tuple[float, float], Optional[dict]] = {}
+_lock = asyncio.Lock()
+
+
+def _cache_key(lat: float, lon: float) -> tuple[float, float]:
+    return (round(lat, 3), round(lon, 3))
+
 
 def _reverse_sync(lat: float, lon: float) -> Optional[dict]:
     global _last_request
@@ -49,5 +58,14 @@ def _reverse_sync(lat: float, lon: float) -> Optional[dict]:
 
 
 async def reverse_geocode(lat: float, lon: float) -> Optional[dict]:
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _reverse_sync, lat, lon)
+    key = _cache_key(lat, lon)
+    if key in _cache:
+        return _cache[key]
+    # Serialize network calls so the rate limit is honored under concurrency
+    async with _lock:
+        if key in _cache:
+            return _cache[key]
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, _reverse_sync, lat, lon)
+        _cache[key] = result
+        return result

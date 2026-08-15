@@ -109,7 +109,8 @@ las fotos nuevas.
 | **Miniaturas** | Genera y cachea miniaturas para que la galería vaya rápida |
 | **Galería web** | Grid de fotos, filtros por año/lugar/carpeta, ordenación |
 | **Lightbox** | Vista ampliada con todos los metadatos y navegación con teclado (← →) |
-| **HEIC / RAW** | Soporte para formatos de iPhone y cámaras (se convierten para el navegador) |
+| **HEIC / RAW** | Soporte para iPhone (HEIC) y RAW de cámara (CR2/CR3, NEF, ARW, DNG…). Los RAW usan la previsualización JPEG embebida — rápido, sin descomprimir el RAW entero |
+| **Indexación rápida** | Procesa 6 fotos en paralelo y cachea el geocoding por zona para no repetir consultas |
 
 ---
 
@@ -151,6 +152,8 @@ Comprueba que `NAS_PHOTOS_PATH` apunta a una carpeta que realmente contiene
 fotos. Mira la consola donde corre el backend por si hay errores.
 
 **La indexación va lenta**
-Es normal la primera vez: descarga cada imagen para leer el GPS y hacer la
-miniatura. El geocoding (GPS → lugar) está limitado a ~1 foto/segundo por las
-reglas de OpenStreetMap. Las siguientes indexaciones solo tocan fotos nuevas.
+Descarga cada imagen para leer el GPS y hacer la miniatura, procesando 6 en
+paralelo. Para RAW usa la previsualización embebida (rápido). El geocoding
+(GPS → lugar) está limitado por OpenStreetMap, pero se cachea por zona, así que
+fotos del mismo sitio no repiten consulta. Las siguientes indexaciones solo
+tocan fotos nuevas.
