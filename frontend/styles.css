@@ -194,6 +194,9 @@ body {
   background: rgba(5,7,14,.95); backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
 }
+/* The [hidden] attribute must win over display:flex, or the lightbox
+   stays on screen covering the whole UI even when "closed". */
+.lightbox[hidden] { display: none; }
 .lb-content {
   display: grid; grid-template-columns: 1fr 300px;
   gap: 0; width: 92vw; height: 88vh;

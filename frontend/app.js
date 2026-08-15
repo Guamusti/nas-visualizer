@@ -20,15 +20,21 @@ async function api(path, opts) {
 
 // ── Init ──
 async function init() {
+  // Bind UI events FIRST so buttons always work, even if data loading fails.
+  bindEvents();
+
   try {
     const health = await api("/api/health");
     $("nasHost").textContent = health.nas.replace(/^https?:\/\//, "");
   } catch (e) { /* ignore */ }
 
   checkConnection();
-  await Promise.all([loadStats(), loadYears(), loadLocations(), loadFolders()]);
-  await loadPhotos(true);
-  bindEvents();
+  try {
+    await Promise.all([loadStats(), loadYears(), loadLocations(), loadFolders()]);
+    await loadPhotos(true);
+  } catch (e) {
+    console.error("Error cargando datos:", e);
+  }
   pollIndexStatus();
 }
 
