@@ -59,7 +59,7 @@ if errorlevel 1 (
 
 REM --- Soporte RAW (opcional): si falla, la app sigue funcionando ---
 echo Instalando soporte RAW (opcional)...
-pip install rawpy==0.23.2 >nul 2>nul
+pip install "rawpy>=0.24" >nul 2>nul
 if errorlevel 1 (
   echo   [AVISO] No se pudo instalar rawpy en esta version de Python.
   echo   Los RAW conservaran fecha/GPS/lugar, pero sin miniatura previa.

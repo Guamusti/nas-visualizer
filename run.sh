@@ -15,7 +15,7 @@ pip install -q --upgrade pip
 pip install -q -r requirements.txt
 
 echo "→ Instalando soporte RAW (opcional)..."
-if pip install -q rawpy==0.23.2 2>/dev/null; then
+if pip install -q "rawpy>=0.24" 2>/dev/null; then
   echo "  ✓ Soporte RAW instalado"
 else
   echo "  ⚠️  rawpy no disponible en esta versión de Python."
