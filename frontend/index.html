@@ -8,60 +8,69 @@
 </head>
 <body>
 
+<!-- Top bar -->
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📸</div>
-    <div>
-      <div class="brand-name">NAS Visualizer</div>
-      <div class="brand-sub" id="nasHost">—</div>
-    </div>
+    <span class="brand-mark">◉</span>
+    <span class="brand-name">Fototeca</span>
+    <span class="brand-host" id="nasHost">—</span>
   </div>
 
+  <nav class="viewtabs">
+    <button class="tab active" data-view="albums" id="tabAlbums">Álbumes</button>
+    <button class="tab" data-view="all" id="tabAll">Todas</button>
+  </nav>
+
   <div class="topbar-actions">
-    <div class="conn" id="connBadge"><span class="dot"></span><span id="connText">Comprobando…</span></div>
-    <button class="btn btn-primary" id="indexBtn">Indexar NAS</button>
+    <span class="conn" id="connBadge"><i class="dot"></i><span id="connText">…</span></span>
+    <button class="btn btn-primary" id="indexBtn">Indexar</button>
   </div>
 </header>
 
-<!-- Index progress bar -->
+<!-- Index progress -->
 <div class="index-panel" id="indexPanel" hidden>
   <div class="index-head">
     <span id="indexPhase">Indexando…</span>
-    <span id="indexCounts" class="muted"></span>
+    <span class="muted" id="indexCounts"></span>
   </div>
   <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
   <div class="index-file muted" id="indexFile"></div>
 </div>
 
-<div class="layout">
-  <!-- Sidebar filters -->
-  <aside class="sidebar">
-    <div class="stat-grid">
-      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Fotos</div></div>
-      <div class="stat"><div class="stat-num" id="statLoc">0</div><div class="stat-label">Con lugar</div></div>
+<!-- ALBUMS VIEW -->
+<main class="view" id="albumsView">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Tu biblioteca</p>
+      <h1 class="page-title" id="albumsTitle">Álbumes</h1>
     </div>
-
-    <div class="filter-group">
-      <div class="filter-title">Año</div>
-      <div class="chip-list" id="yearChips"></div>
+    <div class="albums-toggle" id="albumsMode">
+      <button class="seg active" data-by="auto">Automático</button>
+      <button class="seg" data-by="country">Por país</button>
+      <button class="seg" data-by="folder">Por carpeta</button>
     </div>
+  </div>
+  <div class="album-grid" id="albumGrid"></div>
+  <div class="empty" id="albumsEmpty" hidden>
+    <div class="empty-mark">◍</div>
+    <h2>Aún no hay fotos indexadas</h2>
+    <p>Pulsa <strong>Indexar</strong> para escanear tus fotos del NAS.</p>
+  </div>
+</main>
 
-    <div class="filter-group">
-      <div class="filter-title">Lugares</div>
-      <div class="chip-list" id="locationChips"></div>
-    </div>
-
-    <div class="filter-group">
-      <div class="filter-title">Carpetas</div>
-      <div class="chip-list" id="folderChips"></div>
-    </div>
-  </aside>
-
-  <!-- Main gallery -->
-  <main class="main">
-    <div class="toolbar">
-      <div class="active-filters" id="activeFilters"></div>
-      <div class="toolbar-right">
+<!-- PHOTOS VIEW (album detail or all) -->
+<main class="view" id="photosView" hidden>
+  <header class="album-hero" id="albumHero">
+    <button class="back" id="backBtn">‹ Álbumes</button>
+    <div class="hero-body">
+      <span class="hero-flag" id="heroFlag"></span>
+      <div>
+        <p class="eyebrow" id="heroEyebrow">Álbum</p>
+        <h1 class="hero-title" id="heroTitle">Todas las fotos</h1>
+        <p class="hero-meta" id="heroMeta"></p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-ghost" id="tagCountryBtn" hidden>🏳 Asignar país</button>
         <select id="sortSelect" class="select">
           <option value="taken_desc">Más recientes</option>
           <option value="taken_asc">Más antiguas</option>
@@ -69,28 +78,31 @@
         </select>
       </div>
     </div>
+  </header>
 
-    <div class="grid" id="grid"></div>
-    <div class="empty" id="empty" hidden>
-      <div class="empty-icon">🗂️</div>
-      <div class="empty-title">Aún no hay fotos indexadas</div>
-      <div class="empty-sub">Pulsa <strong>Indexar NAS</strong> para escanear tus fotos.</div>
-    </div>
-    <div class="load-more-wrap">
-      <button class="btn" id="loadMore" hidden>Cargar más</button>
-      <div class="muted" id="gridCount"></div>
-    </div>
-  </main>
-</div>
+  <div class="photo-grid" id="grid"></div>
+  <div class="sentinel" id="sentinel"></div>
+  <div class="grid-status muted" id="gridStatus"></div>
+</main>
 
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" hidden>
   <button class="lb-close" id="lbClose">✕</button>
   <button class="lb-nav lb-prev" id="lbPrev">‹</button>
   <button class="lb-nav lb-next" id="lbNext">›</button>
-  <div class="lb-content">
-    <div class="lb-image-wrap"><img id="lbImage" alt=""></div>
-    <div class="lb-info" id="lbInfo"></div>
+  <div class="lb-stage"><img id="lbImage" alt=""></div>
+  <aside class="lb-info" id="lbInfo"></aside>
+</div>
+
+<!-- Country picker modal -->
+<div class="modal" id="countryModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Asignar país al álbum</h3>
+      <button class="modal-x" id="countryClose">✕</button>
+    </div>
+    <input type="text" id="countrySearch" class="modal-search" placeholder="Busca un país…" autocomplete="off">
+    <div class="country-list" id="countryList"></div>
   </div>
 </div>
 

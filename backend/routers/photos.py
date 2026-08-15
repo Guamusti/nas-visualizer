@@ -23,6 +23,7 @@ def _serialize(p: Photo) -> dict:
         "location_name": p.location_name,
         "location_city": p.location_city,
         "location_country": p.location_country,
+        "country_code": p.country_code,
         "thumbnail_cached": p.thumbnail_cached,
         "ai_tags": p.ai_tags,
         "face_count": p.face_count,

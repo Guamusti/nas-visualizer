@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from db.database import init_db
-from routers import photos, index, media
+from routers import photos, index, media, albums
 from config import settings
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
@@ -30,6 +30,7 @@ app.add_middleware(
 app.include_router(photos.router)
 app.include_router(index.router)
 app.include_router(media.router)
+app.include_router(albums.router)
 
 
 @app.get("/api/health")

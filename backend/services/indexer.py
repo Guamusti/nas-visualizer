@@ -87,6 +87,7 @@ async def _prepare(entry: dict, geocode: bool, sem: asyncio.Semaphore) -> dict:
                 fields["location_name"] = loc["location_name"]
                 fields["location_city"] = loc["location_city"]
                 fields["location_country"] = loc["location_country"]
+                fields["country_code"] = loc.get("country_code")
         return fields
 
 

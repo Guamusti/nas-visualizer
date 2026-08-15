@@ -47,11 +47,13 @@ def _reverse_sync(lat: float, lon: float) -> Optional[dict]:
 
         parts = [p for p in [city, state, country] if p]
         display_name = ", ".join(parts[:2]) if parts else location.address.split(",")[0]
+        country_code = (addr.get("country_code") or "").lower() or None
 
         return {
             "location_name": display_name,
             "location_city": city,
             "location_country": country,
+            "country_code": country_code,
         }
     except (GeocoderTimedOut, Exception):
         return None

@@ -29,6 +29,7 @@ class Photo(Base):
     location_name: Mapped[str | None] = mapped_column(String, index=True)
     location_city: Mapped[str | None] = mapped_column(String, index=True)
     location_country: Mapped[str | None] = mapped_column(String, index=True)
+    country_code: Mapped[str | None] = mapped_column(String, index=True)  # ISO 2-letter, for flags
 
     # Thumbnail
     thumbnail_cached: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -55,3 +56,12 @@ class IndexJob(Base):
     processed_files: Mapped[int] = mapped_column(Integer, default=0)
     new_files: Mapped[int] = mapped_column(Integer, default=0)
     error_message: Mapped[str | None] = mapped_column(Text)
+
+
+class FolderCountry(Base):
+    """Manual country assignment for a folder (for photos without GPS)."""
+    __tablename__ = "folder_countries"
+
+    folder: Mapped[str] = mapped_column(String, primary_key=True)
+    country_code: Mapped[str] = mapped_column(String, nullable=False)
+    country_name: Mapped[str] = mapped_column(String, nullable=False)
