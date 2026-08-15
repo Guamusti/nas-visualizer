@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Env & secrets
+.env
+backend/.env
+
+# Database & cache
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+thumbnail_cache/
+backend/thumbnail_cache/
+backend/nas_photos.db*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (future frontend)
+node_modules/
+.next/
+dist/

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAS Visualizer</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">📸</div>
+    <div>
+      <div class="brand-name">NAS Visualizer</div>
+      <div class="brand-sub" id="nasHost">—</div>
+    </div>
+  </div>
+
+  <div class="topbar-actions">
+    <div class="conn" id="connBadge"><span class="dot"></span><span id="connText">Comprobando…</span></div>
+    <button class="btn btn-primary" id="indexBtn">Indexar NAS</button>
+  </div>
+</header>
+
+<!-- Index progress bar -->
+<div class="index-panel" id="indexPanel" hidden>
+  <div class="index-head">
+    <span id="indexPhase">Indexando…</span>
+    <span id="indexCounts" class="muted"></span>
+  </div>
+  <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="index-file muted" id="indexFile"></div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar filters -->
+  <aside class="sidebar">
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Fotos</div></div>
+      <div class="stat"><div class="stat-num" id="statLoc">0</div><div class="stat-label">Con lugar</div></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-title">Año</div>
+      <div class="chip-list" id="yearChips"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-title">Lugares</div>
+      <div class="chip-list" id="locationChips"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-title">Carpetas</div>
+      <div class="chip-list" id="folderChips"></div>
+    </div>
+  </aside>
+
+  <!-- Main gallery -->
+  <main class="main">
+    <div class="toolbar">
+      <div class="active-filters" id="activeFilters"></div>
+      <div class="toolbar-right">
+        <select id="sortSelect" class="select">
+          <option value="taken_desc">Más recientes</option>
+          <option value="taken_asc">Más antiguas</option>
+          <option value="name">Por nombre</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+      <div class="empty-icon">🗂️</div>
+      <div class="empty-title">Aún no hay fotos indexadas</div>
+      <div class="empty-sub">Pulsa <strong>Indexar NAS</strong> para escanear tus fotos.</div>
+    </div>
+    <div class="load-more-wrap">
+      <button class="btn" id="loadMore" hidden>Cargar más</button>
+      <div class="muted" id="gridCount"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lb-close" id="lbClose">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+  <button class="lb-nav lb-next" id="lbNext">›</button>
+  <div class="lb-content">
+    <div class="lb-image-wrap"><img id="lbImage" alt=""></div>
+    <div class="lb-info" id="lbInfo"></div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
