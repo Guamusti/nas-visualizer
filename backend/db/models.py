@@ -11,6 +11,7 @@ class Photo(Base):
     path: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     filename: Mapped[str] = mapped_column(String, nullable=False)
     folder: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    media_type: Mapped[str] = mapped_column(String, default="photo", index=True)
     size: Mapped[int | None] = mapped_column(Integer)
     width: Mapped[int | None] = mapped_column(Integer)
     height: Mapped[int | None] = mapped_column(Integer)

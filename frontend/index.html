@@ -19,6 +19,7 @@
   <nav class="viewtabs">
     <button class="tab active" data-view="albums" id="tabAlbums">Álbumes</button>
     <button class="tab" data-view="all" id="tabAll">Todas</button>
+    <button class="tab" data-view="reels" id="tabReels">Reels</button>
   </nav>
 
   <div class="topbar-actions">
@@ -85,12 +86,29 @@
   <div class="grid-status muted" id="gridStatus"></div>
 </main>
 
+<!-- REELS VIEW -->
+<main class="reels-view" id="reelsView" hidden>
+  <header class="reels-head">
+    <div>
+      <p class="eyebrow">Momentos</p>
+      <h1>Reels</h1>
+    </div>
+    <p>Desliza para recorrer tu fototeca</p>
+  </header>
+  <div class="reels-feed" id="reelsFeed"></div>
+  <div class="reels-sentinel" id="reelsSentinel"></div>
+  <div class="reels-status" id="reelsStatus"></div>
+</main>
+
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" hidden>
   <button class="lb-close" id="lbClose">✕</button>
   <button class="lb-nav lb-prev" id="lbPrev">‹</button>
   <button class="lb-nav lb-next" id="lbNext">›</button>
-  <div class="lb-stage"><img id="lbImage" alt=""></div>
+  <div class="lb-stage">
+    <img id="lbImage" alt="">
+    <video id="lbVideo" controls playsinline hidden></video>
+  </div>
   <aside class="lb-info" id="lbInfo"></aside>
 </div>
 

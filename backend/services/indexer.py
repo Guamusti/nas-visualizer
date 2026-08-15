@@ -42,6 +42,7 @@ def _process_sync(entry: dict) -> dict:
         "path": path,
         "filename": entry["filename"],
         "folder": entry["folder"],
+        "media_type": "video" if entry.get("is_video") else "photo",
         "size": entry.get("size"),
     }
 

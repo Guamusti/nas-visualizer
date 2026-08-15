@@ -108,6 +108,9 @@ las fotos nuevas.
 | **Autodetección de lugares** | Convierte el GPS en "Madrid, España" usando OpenStreetMap (gratis, local) |
 | **Miniaturas** | Genera y cachea miniaturas para que la galería vaya rápida |
 | **Galería web** | Grid de fotos, filtros por año/lugar/carpeta, ordenación |
+| **Álbumes editoriales** | Agrupación automática por país o carpeta, con banderas y portadas difuminadas |
+| **Reels** | Recorrido vertical e inmersivo por fotos y vídeos, con reproducción automática silenciosa |
+| **Carga progresiva** | Las fotos y reels se incorporan por bloques al desplazarte, sin bloquear la interfaz |
 | **Lightbox** | Vista ampliada con todos los metadatos y navegación con teclado (← →) |
 | **HEIC / RAW** | Soporte para iPhone (HEIC) y RAW de cámara (CR2/CR3, NEF, ARW, DNG…). Los RAW usan la previsualización JPEG embebida — rápido, sin descomprimir el RAW entero |
 | **Indexación rápida** | Procesa 6 fotos en paralelo y cachea el geocoding por zona para no repetir consultas |

@@ -12,6 +12,7 @@ def _serialize(p: Photo) -> dict:
         "id": p.id,
         "filename": p.filename,
         "folder": p.folder,
+        "media_type": p.media_type or "photo",
         "path": p.path,
         "width": p.width,
         "height": p.height,
@@ -39,6 +40,7 @@ async def list_photos(
     location: str | None = None,
     country: str | None = None,
     year: int | None = None,
+    media: str = Query("all", pattern="^(all|photo|video)$"),
     sort: str = Query("taken_desc", pattern="^(taken_desc|taken_asc|name)$"),
 ):
     stmt = select(Photo)
@@ -51,6 +53,8 @@ async def list_photos(
         stmt = stmt.where(Photo.location_country == country)
     if year:
         stmt = stmt.where(func.strftime("%Y", Photo.taken_at) == str(year))
+    if media != "all":
+        stmt = stmt.where(Photo.media_type == media)
 
     if sort == "taken_desc":
         stmt = stmt.order_by(Photo.taken_at.is_(None), Photo.taken_at.desc())

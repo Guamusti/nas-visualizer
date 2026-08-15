@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from db.models import Photo, FolderCountry
@@ -38,7 +38,10 @@ async def list_albums(
                     Photo.location_country,
                     func.max(Photo.country_code).label("cc"),
                     func.count(Photo.id).label("count"),
-                    func.min(Photo.id).label("cover"),
+                    func.coalesce(
+                        func.min(case((Photo.media_type == "photo", Photo.id))),
+                        func.min(Photo.id),
+                    ).label("cover"),
                     func.min(Photo.taken_at).label("from_date"),
                     func.max(Photo.taken_at).label("to_date"),
                 )
@@ -69,7 +72,10 @@ async def list_albums(
                     func.max(Photo.country_code).label("cc"),
                     func.max(Photo.location_country).label("country"),
                     func.count(Photo.id).label("count"),
-                    func.min(Photo.id).label("cover"),
+                    func.coalesce(
+                        func.min(case((Photo.media_type == "photo", Photo.id))),
+                        func.min(Photo.id),
+                    ).label("cover"),
                     func.min(Photo.taken_at).label("from_date"),
                     func.max(Photo.taken_at).label("to_date"),
                 )
@@ -116,8 +122,13 @@ async def set_folder_country(payload: FolderCountryIn, db: AsyncSession = Depend
     else:
         db.add(FolderCountry(folder=payload.folder, country_code=code, country_name=name))
 
-    # Apply to photos in that folder
-    photos = (await db.scalars(select(Photo).where(Photo.folder == payload.folder))).all()
+    # Manual tags fill gaps only. Never overwrite trustworthy GPS-derived data.
+    photos = (await db.scalars(
+        select(Photo).where(
+            Photo.folder == payload.folder,
+            Photo.gps_lat.is_(None),
+        )
+    )).all()
     for p in photos:
         p.country_code = code
         p.location_country = name
@@ -128,9 +139,16 @@ async def set_folder_country(payload: FolderCountryIn, db: AsyncSession = Depend
 @router.delete("/folder-country")
 async def clear_folder_country(folder: str, db: AsyncSession = Depends(get_db)):
     existing = await db.get(FolderCountry, folder)
+    old_code = existing.country_code if existing else None
+    old_name = existing.country_name if existing else None
     if existing:
         await db.delete(existing)
-    photos = (await db.scalars(select(Photo).where(Photo.folder == folder))).all()
+    photos = (await db.scalars(select(Photo).where(
+        Photo.folder == folder,
+        Photo.gps_lat.is_(None),
+        Photo.country_code == old_code,
+        Photo.location_country == old_name,
+    ))).all() if existing else []
     for p in photos:
         p.country_code = None
         p.location_country = None

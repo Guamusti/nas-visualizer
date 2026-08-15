@@ -1,4 +1,5 @@
 import io
+import mimetypes
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,6 +45,13 @@ async def full_image(photo_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(404, "Foto no encontrada")
     try:
         data = await nas_client.download_file(p.path)
+        if p.media_type == "video":
+            media_type = mimetypes.guess_type(p.filename)[0] or "video/mp4"
+            return Response(
+                content=data,
+                media_type=media_type,
+                headers={"Cache-Control": "private, max-age=3600", "Accept-Ranges": "bytes"},
+            )
         # Serve a web-friendly version for HEIC/RAW so browsers can render it
         suffix = p.filename.lower().rsplit(".", 1)[-1] if "." in p.filename else ""
         raw_or_special = {"heic", "heif", "tiff", "tif", "raw", "cr2", "cr3",

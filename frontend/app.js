@@ -6,6 +6,7 @@ const state = {
   sort: "taken_desc",
   offset: 0, limit: 40, total: 0,
   photos: [], loading: false, hasMore: false,
+  reelsOffset: 0, reelsLimit: 12, reels: [], reelsLoading: false, reelsHasMore: true,
   pollTimer: null,
 };
 
@@ -93,8 +94,11 @@ function showView(v) {
   state.view = v;
   $("albumsView").hidden = v !== "albums";
   $("photosView").hidden = v !== "photos";
+  $("reelsView").hidden = v !== "reels";
   $("tabAlbums").classList.toggle("active", v === "albums");
   $("tabAll").classList.toggle("active", v === "photos" && !state.album);
+  $("tabReels").classList.toggle("active", v === "reels");
+  if (v !== "reels") pauseReels();
 }
 
 function openAlbum(al) {
@@ -161,25 +165,130 @@ function renderPhotos(photos) {
   photos.forEach((p) => {
     const idx = state.photos.indexOf(p);
     const tile = document.createElement("div");
-    tile.className = "tile";
+    tile.className = "tile" + (p.media_type === "video" ? " video-tile" : "");
     const badge = p.location_city ? `<div class="tile-badge">${flag(p.country_code)} ${esc(p.location_city)}</div>` : "";
-    tile.innerHTML = `<img loading="lazy" src="/api/media/thumb/${p.id}" alt="">${badge}`;
-    const img = tile.querySelector("img");
-    img.onload = () => img.classList.add("loaded");
-    img.onerror = () => { tile.remove(); };
+    if (p.media_type === "video") {
+      tile.innerHTML = `<video preload="metadata" muted playsinline src="/api/media/full/${p.id}"></video><span class="video-mark">▶</span>${badge}`;
+      const video = tile.querySelector("video");
+      video.onloadeddata = () => video.classList.add("loaded");
+    } else {
+      tile.innerHTML = `<img loading="lazy" src="/api/media/thumb/${p.id}" alt="">${badge}`;
+      const img = tile.querySelector("img");
+      img.onload = () => img.classList.add("loaded");
+      img.onerror = () => { tile.remove(); };
+    }
     tile.onclick = () => openLightbox(idx);
     grid.appendChild(tile);
   });
 }
 
+// ── Reels ──
+async function openReels() {
+  showView("reels");
+  if (!state.reels.length) await loadReels(true);
+}
+
+async function loadReels(reset) {
+  if (state.reelsLoading || (!reset && !state.reelsHasMore)) return;
+  if (reset) {
+    state.reelsOffset = 0;
+    state.reels = [];
+    state.reelsHasMore = true;
+    $("reelsFeed").innerHTML = "";
+  }
+  state.reelsLoading = true;
+  $("reelsStatus").textContent = "Cargando momentos…";
+  try {
+    const p = new URLSearchParams({
+      limit: state.reelsLimit,
+      offset: state.reelsOffset,
+      sort: "taken_desc",
+      media: "all",
+    });
+    const data = await api("/api/photos?" + p);
+    state.reels.push(...data.photos);
+    state.reelsOffset += data.photos.length;
+    state.reelsHasMore = state.reels.length < data.total;
+    renderReels(data.photos);
+    $("reelsStatus").textContent = state.reelsHasMore ? "" : (data.total ? "— Has llegado al principio de tus recuerdos —" : "Aún no hay momentos");
+  } catch {
+    $("reelsStatus").textContent = "No se pudieron cargar los reels";
+  } finally {
+    state.reelsLoading = false;
+  }
+}
+
+function renderReels(items) {
+  const feed = $("reelsFeed");
+  items.forEach((p) => {
+    const article = document.createElement("article");
+    article.className = "reel-card";
+    article.dataset.id = p.id;
+    const place = p.location_city || p.location_country || "Tu fototeca";
+    const when = p.taken_at
+      ? new Date(p.taken_at).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" })
+      : "Fecha desconocida";
+    const media = p.media_type === "video"
+      ? `<video class="reel-media" preload="metadata" muted loop playsinline src="/api/media/full/${p.id}"></video><button class="reel-sound" aria-label="Activar sonido">♪</button>`
+      : `<img class="reel-media" loading="lazy" src="/api/media/thumb/${p.id}" alt="${esc(p.filename)}">`;
+    article.innerHTML = `
+      ${media}
+      <div class="reel-shade"></div>
+      <div class="reel-copy">
+        <span class="reel-flag">${flag(p.country_code)}</span>
+        <p class="reel-place">${esc(place)}</p>
+        <p class="reel-date">${esc(when)}</p>
+      </div>
+      <button class="reel-open" aria-label="Abrir ${esc(p.filename)}">↗</button>`;
+    article.querySelector(".reel-open").onclick = () => {
+      state.photos = state.reels;
+      openLightbox(state.reels.indexOf(p));
+    };
+    const sound = article.querySelector(".reel-sound");
+    if (sound) sound.onclick = () => {
+      const video = article.querySelector("video");
+      video.muted = !video.muted;
+      sound.textContent = video.muted ? "♪" : "♫";
+    };
+    feed.appendChild(article);
+    reelObserver.observe(article);
+  });
+}
+
+function pauseReels() {
+  document.querySelectorAll(".reel-card video").forEach((v) => v.pause());
+}
+
+const reelObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    const video = entry.target.querySelector("video");
+    if (!video) return;
+    if (entry.isIntersecting && state.view === "reels") video.play().catch(() => {});
+    else video.pause();
+  });
+}, { threshold: .68 });
+
 // ── Lightbox ──
 let lbIndex = 0;
 function openLightbox(i) { lbIndex = i; renderLightbox(); $("lightbox").hidden = false; document.body.style.overflow = "hidden"; }
-function closeLightbox() { $("lightbox").hidden = true; document.body.style.overflow = ""; }
+function closeLightbox() {
+  $("lightbox").hidden = true;
+  $("lbVideo").pause();
+  document.body.style.overflow = "";
+}
 function renderLightbox() {
   const p = state.photos[lbIndex];
   if (!p) return;
-  $("lbImage").src = `/api/media/full/${p.id}`;
+  const isVideo = p.media_type === "video";
+  $("lbImage").hidden = isVideo;
+  $("lbVideo").hidden = !isVideo;
+  $("lbVideo").pause();
+  if (isVideo) {
+    $("lbVideo").src = `/api/media/full/${p.id}`;
+  } else {
+    $("lbImage").src = `/api/media/full/${p.id}`;
+    $("lbVideo").removeAttribute("src");
+  }
   const date = p.taken_at ? new Date(p.taken_at).toLocaleString("es", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "Sin fecha";
   const rows = [
     ["🗓", "Fecha", date],
@@ -265,6 +374,7 @@ async function pollIndexStatus() {
 function bindEvents() {
   $("tabAlbums").onclick = () => { showView("albums"); loadAlbums(); };
   $("tabAll").onclick = openAll;
+  $("tabReels").onclick = openReels;
   $("backBtn").onclick = () => { showView("albums"); loadAlbums(); };
   $("indexBtn").onclick = startIndex;
   $("sortSelect").onchange = (e) => { state.sort = e.target.value; loadPhotos(true); };
@@ -284,15 +394,32 @@ function bindEvents() {
   }, { rootMargin: "600px" });
   io.observe($("sentinel"));
 
+  const reelsIo = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && state.view === "reels" && state.reelsHasMore && !state.reelsLoading) loadReels(false);
+  }, { rootMargin: "800px" });
+  reelsIo.observe($("reelsSentinel"));
+
   // Lightbox
   $("lbClose").onclick = closeLightbox;
   $("lbPrev").onclick = () => lbMove(-1);
   $("lbNext").onclick = () => lbMove(1);
   document.addEventListener("keydown", (e) => {
-    if ($("lightbox").hidden) return;
-    if (e.key === "Escape") closeLightbox();
-    if (e.key === "ArrowLeft") lbMove(-1);
-    if (e.key === "ArrowRight") lbMove(1);
+    if (!$("lightbox").hidden) {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") lbMove(-1);
+      if (e.key === "ArrowRight") lbMove(1);
+      return;
+    }
+    if (state.view === "reels" && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      const cards = [...document.querySelectorAll(".reel-card")];
+      const current = cards.findIndex((card) => {
+        const rect = card.getBoundingClientRect();
+        return rect.top >= 0 && rect.top < innerHeight * .55;
+      });
+      const next = Math.max(0, Math.min(cards.length - 1, current + (e.key === "ArrowDown" ? 1 : -1)));
+      cards[next]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   });
 
   // Country modal

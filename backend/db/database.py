@@ -22,6 +22,19 @@ async def _migrate(conn):
     columns = {row[1] for row in result.fetchall()}
     if "country_code" not in columns:
         await conn.execute(text("ALTER TABLE photos ADD COLUMN country_code VARCHAR"))
+    if "media_type" not in columns:
+        await conn.execute(text(
+            "ALTER TABLE photos ADD COLUMN media_type VARCHAR DEFAULT 'photo'"
+        ))
+        await conn.execute(text("""
+            UPDATE photos SET media_type = 'video'
+            WHERE lower(filename) LIKE '%.mp4'
+               OR lower(filename) LIKE '%.mov'
+               OR lower(filename) LIKE '%.avi'
+               OR lower(filename) LIKE '%.mkv'
+               OR lower(filename) LIKE '%.m4v'
+               OR lower(filename) LIKE '%.3gp'
+        """))
 
 
 async def init_db():
