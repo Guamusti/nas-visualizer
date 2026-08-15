@@ -245,6 +245,21 @@ body {
 .country-item:hover { background: var(--surface-2); }
 .country-item .ci-flag { font-size: 22px; }
 
+/* ── Partial indexing ── */
+.sample-card { max-width: 520px; }
+.sample-help { color: var(--ink-2); font-size: 13.5px; padding: 0 22px 18px; }
+.sample-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 22px 22px; }
+.sample-option {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 16px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg);
+  color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s;
+}
+.sample-option:hover { border-color: var(--accent); transform: translateY(-1px); }
+.sample-option strong { font-family: var(--serif); font-size: 25px; line-height: 1; }
+.sample-option span { color: var(--ink-3); font-size: 12px; }
+.sample-option.recommended { border-color: color-mix(in srgb, var(--accent) 65%, var(--line)); }
+.sample-option.recommended::after { content: "★"; position: absolute; top: 11px; right: 12px; color: var(--accent); font-size: 11px; }
+
 @media (max-width: 820px) {
   .topbar { grid-template-columns: 1fr auto; row-gap: 10px; }
   .viewtabs { order: 3; grid-column: 1 / -1; justify-content: center; }
@@ -255,4 +270,7 @@ body {
   .reels-head { padding: 0 6px; }
   .reels-head > p { display: none; }
   .reel-card { height: calc(100dvh - 185px); min-height: 480px; border-radius: 18px; }
+  .conn { display: none; }
+  .topbar-actions { gap: 6px; }
+  .topbar-actions .btn { padding: 7px 10px; font-size: 12px; }
 }

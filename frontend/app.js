@@ -337,24 +337,30 @@ async function assignCountry(code, name) {
 }
 
 // ── Indexing ──
-async function startIndex() {
-  $("indexBtn").disabled = true;
-  try { await api("/api/index/start", { method: "POST" }); $("indexPanel").hidden = false; pollIndexStatus(); }
-  catch { $("indexBtn").disabled = false; }
+function setIndexButtonsDisabled(disabled) {
+  $("indexBtn").disabled = disabled;
+  $("sampleIndexBtn").disabled = disabled;
+}
+async function startIndex(limit = null) {
+  setIndexButtonsDisabled(true);
+  $("sampleModal").hidden = true;
+  const query = limit ? `?limit=${limit}` : "";
+  try { await api("/api/index/start" + query, { method: "POST" }); $("indexPanel").hidden = false; pollIndexStatus(); }
+  catch { setIndexButtonsDisabled(false); }
 }
 async function pollIndexStatus() {
   if (state.pollTimer) clearInterval(state.pollTimer);
   const tick = async () => {
     let s; try { s = await api("/api/index/status"); } catch { return; }
     if (s.running) {
-      $("indexPanel").hidden = false; $("indexBtn").disabled = true;
+      $("indexPanel").hidden = false; setIndexButtonsDisabled(true);
       const pct = s.total ? Math.round((s.processed / s.total) * 100) : 0;
       $("progressFill").style.width = pct + "%";
       $("indexPhase").textContent = s.phase === "listing" ? "Listando archivos…" : `Procesando… ${pct}%`;
       $("indexCounts").textContent = `${s.processed} / ${s.total} · ${s.new} nuevas`;
       $("indexFile").textContent = s.current_file || "";
     } else {
-      $("indexBtn").disabled = false;
+      setIndexButtonsDisabled(false);
       if (s.phase === "done" || s.phase === "error") {
         $("progressFill").style.width = "100%";
         $("indexPhase").textContent = s.phase === "done" ? "✓ Indexación completa" : "✕ Error";
@@ -376,7 +382,8 @@ function bindEvents() {
   $("tabAll").onclick = openAll;
   $("tabReels").onclick = openReels;
   $("backBtn").onclick = () => { showView("albums"); loadAlbums(); };
-  $("indexBtn").onclick = startIndex;
+  $("indexBtn").onclick = () => startIndex();
+  $("sampleIndexBtn").onclick = () => { $("sampleModal").hidden = false; };
   $("sortSelect").onchange = (e) => { state.sort = e.target.value; loadPhotos(true); };
 
   document.querySelectorAll("#albumsMode .seg").forEach((seg) => {
@@ -427,6 +434,13 @@ function bindEvents() {
   $("countryClose").onclick = () => { $("countryModal").hidden = true; };
   $("countryModal").onclick = (e) => { if (e.target.id === "countryModal") $("countryModal").hidden = true; };
   $("countrySearch").oninput = (e) => renderCountryList(e.target.value);
+
+  // Partial indexing modal
+  $("sampleClose").onclick = () => { $("sampleModal").hidden = true; };
+  $("sampleModal").onclick = (e) => { if (e.target.id === "sampleModal") $("sampleModal").hidden = true; };
+  document.querySelectorAll(".sample-option").forEach((button) => {
+    button.onclick = () => startIndex(Number(button.dataset.limit));
+  });
 }
 
 // ── Country list (name, ISO-2) ──

@@ -87,8 +87,9 @@ NAS_PHOTOS_PATH=/Photos
 1. Vuelve a ejecutar `./run.sh` (o `run.bat`).
 2. Abre el navegador en **http://localhost:8000**
 3. Arriba a la derecha verás si el NAS está **conectado** (punto verde).
-4. Pulsa **"Indexar NAS"** — empezará a escanear tus fotos. Verás una barra
-   de progreso en tiempo real.
+4. Pulsa **"Indexar muestra"** para probar primero con 25–250 archivos nuevos,
+   o **"Indexar todo"** para completar la biblioteca. Verás una barra de progreso
+   en tiempo real y nunca se repetirán los archivos ya procesados.
 5. A medida que indexa, aparecen las fotos, los lugares detectados por GPS,
    los años y las carpetas en la barra lateral.
 

@@ -31,6 +31,11 @@ def _thumb_name(path: str) -> str:
     return hashlib.sha1(path.encode("utf-8")).hexdigest() + ".jpg"
 
 
+def _select_pending(files: list[dict], existing: set[str], limit: int | None = None):
+    pending = [item for item in files if item["path"] not in existing]
+    return pending, pending[:limit] if limit else pending
+
+
 def thumbnail_file(path: str):
     return settings.thumbnail_path / _thumb_name(path)
 
@@ -97,7 +102,7 @@ def _to_photo(fields: dict) -> Photo:
     return Photo(**fields)
 
 
-async def run_index(geocode: bool = True):
+async def run_index(geocode: bool = True, limit: int | None = None):
     if _status["running"]:
         return
 
@@ -118,15 +123,21 @@ async def run_index(geocode: bool = True):
 
             # Skip already-indexed files (one query, not one per file)
             existing = set((await db.scalars(select(Photo.path))).all())
-            todo = [f for f in files if f["path"] not in existing]
+            pending, todo = _select_pending(files, existing, limit)
 
             _status["total"] = len(todo)
             _status["phase"] = "processing"
-            _status["message"] = (
-                f"{len(files)} archivos · {len(existing)} ya indexados · "
-                f"{len(todo)} nuevos por procesar"
-            )
-            job.total_files = len(files)
+            if limit:
+                _status["message"] = (
+                    f"Muestra de {len(todo)} · {len(pending)} pendientes en total · "
+                    f"{len(existing)} ya indexados"
+                )
+            else:
+                _status["message"] = (
+                    f"{len(files)} archivos · {len(existing)} ya indexados · "
+                    f"{len(todo)} nuevos por procesar"
+                )
+            job.total_files = len(todo)
             await db.commit()
 
             sem = asyncio.Semaphore(CONCURRENCY)
@@ -152,7 +163,11 @@ async def run_index(geocode: bool = True):
 
             _status.update({
                 "phase": "done",
-                "message": f"Indexación completa: {new_count} nuevas de {len(files)} archivos",
+                "message": (
+                    f"Muestra completa: {new_count} archivos nuevos"
+                    if limit else
+                    f"Indexación completa: {new_count} nuevas de {len(files)} archivos"
+                ),
                 "finished_at": datetime.utcnow().isoformat(),
             })
         except Exception as e:

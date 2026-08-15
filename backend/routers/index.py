@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, Query
 from services import indexer, nas_client
 
 router = APIRouter(prefix="/api/index", tags=["index"])
@@ -11,13 +11,17 @@ async def index_status():
 
 
 @router.post("/start")
-async def start_index(background_tasks: BackgroundTasks, geocode: bool = True):
+async def start_index(
+    geocode: bool = True,
+    limit: int | None = Query(None, ge=1, le=1000),
+):
     status = indexer.get_status()
     if status["running"]:
         return {"started": False, "message": "Ya hay una indexación en curso"}
     # Run in the event loop as a background task
-    asyncio.create_task(indexer.run_index(geocode=geocode))
-    return {"started": True, "message": "Indexación iniciada"}
+    asyncio.create_task(indexer.run_index(geocode=geocode, limit=limit))
+    message = f"Indexación de muestra iniciada ({limit} archivos)" if limit else "Indexación completa iniciada"
+    return {"started": True, "message": message, "limit": limit}
 
 
 @router.get("/connection")

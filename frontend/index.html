@@ -24,7 +24,8 @@
 
   <div class="topbar-actions">
     <span class="conn" id="connBadge"><i class="dot"></i><span id="connText">…</span></span>
-    <button class="btn btn-primary" id="indexBtn">Indexar</button>
+    <button class="btn btn-ghost" id="sampleIndexBtn">Indexar muestra</button>
+    <button class="btn btn-primary" id="indexBtn">Indexar todo</button>
   </div>
 </header>
 
@@ -121,6 +122,26 @@
     </div>
     <input type="text" id="countrySearch" class="modal-search" placeholder="Busca un país…" autocomplete="off">
     <div class="country-list" id="countryList"></div>
+  </div>
+</div>
+
+<!-- Partial indexing picker -->
+<div class="modal" id="sampleModal" hidden>
+  <div class="modal-card sample-card">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">Prueba rápida</p>
+        <h3>Indexar una pequeña parte</h3>
+      </div>
+      <button class="modal-x" id="sampleClose" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="sample-help">Elige cuántos archivos nuevos quieres procesar. Después podrás continuar con el resto sin repetirlos.</p>
+    <div class="sample-options">
+      <button class="sample-option" data-limit="25"><strong>25</strong><span>Muy rápida</span></button>
+      <button class="sample-option recommended" data-limit="50"><strong>50</strong><span>Recomendada</span></button>
+      <button class="sample-option" data-limit="100"><strong>100</strong><span>Prueba amplia</span></button>
+      <button class="sample-option" data-limit="250"><strong>250</strong><span>Lote pequeño</span></button>
+    </div>
   </div>
 </div>
 
